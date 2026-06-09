@@ -1,0 +1,25 @@
+目标：写一个 prd.md 文档来说明你将如何根据下面的信息和 $FastAPI Templates。来制作一个校园找搭子系统的后端项目
+
+要求：
+2. 在 prd.md 中只写思路、方法、步骤，不写代码
+3. 要写出项目的目录结构并对文件夹的作用做出简要说明
+4. 技术栈是 fastapi + pydantic-ai + json
+后端框架：FastAPI
+数据库:SQLite
+ORM：SQLAlchemy 2.0
+数据校验：Pydantic v2
+认证：JWT Authentication
+项目结构：
+企业级分层架构
+API层
+Service层
+Model层
+Schema层
+Database层
+
+要求：代码符合PEP8规范,所有接口必须有类型注解,所有接口自动生成Swagger文档,使用.env管理配置
+5. 有不确定的地方要反过来问我
+6. 为了避免环境变量冲突，环境变量名不要直接用 openai_base_url 和 openai_api_key
+
+
+

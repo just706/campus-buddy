@@ -14,6 +14,9 @@ async def init_db() -> None:
     the SQLAlchemy Base metadata before table creation.
     """
     # Import models to register them on Base.metadata
+    import app.models.chat  # noqa: F401
+    import app.models.match  # noqa: F401
+    import app.models.message  # noqa: F401
     import app.models.notification  # noqa: F401
     import app.models.post  # noqa: F401
     import app.models.user  # noqa: F401

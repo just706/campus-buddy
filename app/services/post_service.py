@@ -1,17 +1,22 @@
 """Post business logic.
 
 Handles CRUD operations for buddy-finding posts, including
-pagination, filtering, expiry enforcement, and ownership checks.
+pagination, filtering, expiry enforcement, ownership checks,
+and AI content moderation on creation.
 """
 
+import logging
 from datetime import UTC, datetime, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ForbiddenException, NotFoundException
+from app.core.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.models.post import Post
 from app.schemas.post import PostCreate, PostFilter, PostUpdate
+from app.services.moderation_service import moderate_content
+
+logger = logging.getLogger(__name__)
 
 
 def _utcnow() -> datetime:
@@ -36,6 +41,10 @@ def _is_expired(expires_at: datetime | None) -> bool:
 async def create_post(db: AsyncSession, user_id: int, data: PostCreate) -> Post:
     """Create a new buddy-finding post.
 
+    Runs AI content moderation on the combined title + description before
+    persisting. If the content is flagged as a high-confidence violation,
+    the post is rejected.
+
     Args:
         db: Async database session.
         user_id: The ID of the authenticated user creating the post.
@@ -43,7 +52,26 @@ async def create_post(db: AsyncSession, user_id: int, data: PostCreate) -> Post:
 
     Returns:
         The newly created Post object.
+
+    Raises:
+        BadRequestException: If AI moderation blocks the content.
     """
+    # Run AI content moderation on title + description
+    content = f"{data.title}\n{data.description}"
+    if content.strip():
+        decision = await moderate_content(content, context="post body")
+        logger.info(
+            "Post moderation: action=%s confidence=%.2f type=%s reason=%s",
+            decision.action,
+            decision.result.confidence,
+            decision.result.violation_type,
+            decision.result.reason,
+        )
+        if decision.action == "block":
+            raise BadRequestException(
+                f"Content violates community guidelines: {decision.result.reason}"
+            )
+
     post = Post(
         user_id=user_id,
         title=data.title,

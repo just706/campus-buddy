@@ -13,7 +13,11 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 # Import models so Base.metadata knows about them
+import app.models.chat  # noqa: F401
+import app.models.match  # noqa: F401
+import app.models.message  # noqa: F401
 import app.models.notification  # noqa: F401
+import app.models.post  # noqa: F401
 import app.models.user  # noqa: F401
 from app.db.session import get_db
 from app.main import app

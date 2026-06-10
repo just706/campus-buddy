@@ -3,8 +3,15 @@
   <div class="chat-list-page">
     <AppHeader title="消息" />
 
-    <!-- Loading on first load -->
-    <LoadingSpinner v-if="isLoading && chatList.length === 0" />
+    <!-- Skeleton loading on first load -->
+    <div v-if="isLoading && chatList.length === 0" class="chat-list-scroll">
+      <SkeletonCard
+        v-for="i in 6"
+        :key="'sk-' + i"
+        :lines="2"
+        :inline="true"
+      />
+    </div>
 
     <!-- Chat list -->
     <div
@@ -49,6 +56,7 @@ import { ChatDotRound } from '@element-plus/icons-vue'
 import AppHeader from '@/components/common/AppHeader.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import SkeletonCard from '@/components/common/SkeletonCard.vue'
 import ChatListItem from '@/components/chat/ChatListItem.vue'
 import { useChatsStore } from '@/stores/chats'
 import { usePagination } from '@/composables/usePagination'

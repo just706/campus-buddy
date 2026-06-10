@@ -17,7 +17,14 @@
     </div>
 
     <!-- Match List -->
-    <LoadingSpinner v-if="loading" text="加载中..." />
+    <!-- Skeleton loading -->
+    <div v-if="loading" class="match-list">
+      <SkeletonCard
+        v-for="i in 4"
+        :key="'sk-' + i"
+        :lines="2"
+      />
+    </div>
 
     <EmptyState
       v-else-if="!loading && matches.length === 0"
@@ -46,8 +53,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Connection } from '@element-plus/icons-vue'
 import { useMatchesStore } from '@/stores/matches'
 import AppHeader from '@/components/common/AppHeader.vue'
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import SkeletonCard from '@/components/common/SkeletonCard.vue'
 import MatchCard from '@/components/match/MatchCard.vue'
 
 const router = useRouter()

@@ -47,6 +47,37 @@ export const MATCH_STATUS_MAP: Record<string, { label: string; color: string }> 
   rejected: { label: '已拒绝', color: '#909399' },
 }
 
+/** Suggested interest tags — organized by category for quick selection. */
+export const SUGGESTED_TAGS: Array<{ label: string; tags: string[] }> = [
+  {
+    label: '学习',
+    tags: ['自习', '图书馆', '考研', '英语', '编程', '数学', '论文', '考证', '背单词', '网课'],
+  },
+  {
+    label: '运动',
+    tags: ['篮球', '足球', '羽毛球', '乒乓球', '跑步', '健身', '游泳', '排球', '网球', '瑜伽'],
+  },
+  {
+    label: '娱乐',
+    tags: ['看电影', '追剧', '音乐', '唱歌', '游戏', '桌游', '剧本杀', '密室逃脱', '跳舞', '画画'],
+  },
+  {
+    label: '美食',
+    tags: ['探店', '火锅', '奶茶', '咖啡', '烧烤', '甜品', '小吃', '烘焙'],
+  },
+  {
+    label: '出行',
+    tags: ['爬山', '骑行', '露营', '旅游', '摄影', '逛街', '看展'],
+  },
+  {
+    label: '其他',
+    tags: ['志愿者', '实习', '创业', '辩论', '动漫', '追星', '养宠'],
+  },
+]
+
+/** Flatten all suggested tags into a single array for validation/comparison. */
+export const ALL_SUGGESTED_TAGS: string[] = SUGGESTED_TAGS.flatMap((g) => g.tags)
+
 /** Match score color thresholds. */
 export function getScoreColor(score: number): string {
   if (score >= 90) return '#67C23A'

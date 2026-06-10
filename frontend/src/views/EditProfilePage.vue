@@ -42,7 +42,7 @@
       <!-- Tags -->
       <div class="form-section">
         <label class="form-label">兴趣标签</label>
-        <TagsEditor v-model="form.tags" :max="10" />
+        <TagsEditor v-model="form.tags" :max="10" :suggestions="SUGGESTED_TAGS" />
       </div>
 
       <!-- Phone -->
@@ -98,7 +98,7 @@ import { reactive, computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
-import { GRADE_OPTIONS, GENDER_OPTIONS } from '@/utils/constants'
+import { GRADE_OPTIONS, GENDER_OPTIONS, SUGGESTED_TAGS } from '@/utils/constants'
 import type { UserUpdateRequest } from '@/types'
 import AppHeader from '@/components/common/AppHeader.vue'
 import TagsEditor from '@/components/common/TagsEditor.vue'

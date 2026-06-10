@@ -45,6 +45,17 @@
         icon="ChatDotRound"
       />
 
+      <!-- Skeleton loading for initial message load -->
+      <template v-if="loadingMessages && messages.length === 0">
+        <div v-for="i in 5" :key="'sk-' + i" class="msg-skeleton" :class="{ 'msg-skeleton--mine': i % 2 === 0 }">
+          <el-skeleton animated>
+            <template #template>
+              <el-skeleton-item variant="text" :style="i % 2 === 0 ? 'width:60%;margin-left:auto' : 'width:70%'" />
+            </template>
+          </el-skeleton>
+        </div>
+      </template>
+
       <!-- Message groups with date dividers -->
       <template v-for="group in messageGroups" :key="group.date">
         <DateDivider :date="group.date" />
@@ -416,5 +427,15 @@ onBeforeUnmount(() => {
 .list-status--end {
   font-size: 12px;
   color: var(--text-placeholder);
+}
+
+/* Message skeleton */
+.msg-skeleton {
+  padding: 16px 16px 4px;
+  max-width: 72%;
+}
+
+.msg-skeleton--mine {
+  margin-left: auto;
 }
 </style>

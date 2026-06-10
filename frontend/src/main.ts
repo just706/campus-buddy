@@ -14,12 +14,17 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import App from './App.vue'
 import router from './router'
+import { useUiStore } from './stores/ui'
 import './assets/styles/global.css'
 
 const app = createApp(App)
 
 // Pinia (state management)
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
+
+// Initialize network detection early
+useUiStore().initNetworkDetection()
 
 // Vue Router
 app.use(router)

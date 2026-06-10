@@ -30,7 +30,16 @@
 
     <!-- Post List -->
     <div class="post-list" ref="listRef">
-      <LoadingSpinner v-if="isLoading && posts.length === 0" text="加载中..." />
+      <!-- Skeleton loading on first load -->
+      <template v-if="isLoading && posts.length === 0">
+        <SkeletonCard
+          v-for="i in 6"
+          :key="'sk-' + i"
+          :lines="3"
+          :show-avatar="false"
+        />
+      </template>
+
       <EmptyState
         v-else-if="!isLoading && posts.length === 0"
         text="还没有邀约，快来发布第一个吧！"
@@ -38,15 +47,18 @@
         action-text="发布邀约"
         @action="router.push('/posts/new')"
       />
+
       <template v-else>
-        <PostCard
-          v-for="post in posts"
-          :key="post.id"
-          :post="post"
-          @click="router.push(`/posts/${$event}`)"
-          @tag-click="handleTagClick"
-          @user-click="router.push(`/users/${$event}`)"
-        />
+        <div class="post-grid">
+          <PostCard
+            v-for="post in posts"
+            :key="post.id"
+            :post="post"
+            @click="router.push(`/posts/${$event}`)"
+            @tag-click="handleTagClick"
+            @user-click="router.push(`/users/${$event}`)"
+          />
+        </div>
         <LoadingSpinner v-if="isLoading && posts.length > 0" text="加载更多..." :inline="true" />
         <p v-if="isFinished && posts.length > 0" class="list-end">— 没有更多了 —</p>
       </template>
@@ -74,6 +86,7 @@ import { debounce } from '@/composables/useDebounce'
 import PostCard from '@/components/post/PostCard.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import SkeletonCard from '@/components/common/SkeletonCard.vue'
 
 const router = useRouter()
 const postsStore = usePostsStore()
@@ -207,6 +220,27 @@ onUnmounted(() => {
 
 .post-list {
   padding: 12px 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Responsive grid per PRD §7.5 */
+.post-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .post-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .post-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .list-end {
@@ -214,6 +248,7 @@ onUnmounted(() => {
   color: #c0c4cc;
   font-size: 13px;
   padding: 16px 0;
+  grid-column: 1 / -1;
 }
 
 .fab-btn {

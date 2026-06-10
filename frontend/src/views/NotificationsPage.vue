@@ -30,7 +30,15 @@
     </div>
 
     <!-- Notification List -->
-    <LoadingSpinner v-if="loading" text="加载中..." />
+    <!-- Skeleton loading -->
+    <div v-if="loading" class="notif-list">
+      <SkeletonCard
+        v-for="i in 5"
+        :key="'sk-' + i"
+        :lines="2"
+        :inline="true"
+      />
+    </div>
 
     <EmptyState
       v-else-if="!loading && notifications.length === 0"
@@ -46,7 +54,9 @@
       />
     </div>
 
-    <LoadingSpinner v-if="loading && notifications.length > 0" :inline="true" />
+    <div v-if="loadingMore && notifications.length > 0" class="loading-more">
+      <LoadingSpinner :inline="true" :size="20" />
+    </div>
   </div>
 </template>
 
@@ -59,12 +69,14 @@ import type { NotificationResponse } from '@/types'
 import AppHeader from '@/components/common/AppHeader.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import EmptyState from '@/components/common/EmptyState.vue'
+import SkeletonCard from '@/components/common/SkeletonCard.vue'
 import NotificationItem from '@/components/notification/NotificationItem.vue'
 
 const router = useRouter()
 const notifStore = useNotificationsStore()
 
 const loading = ref(true)
+const loadingMore = ref(false)
 const markingAll = ref(false)
 const unreadOnly = ref(false)
 

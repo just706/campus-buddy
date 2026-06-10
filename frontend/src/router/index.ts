@@ -51,19 +51,19 @@ const routes: RouteRecordRaw[] = [
     path: '/posts/new',
     name: 'CreatePost',
     component: CreatePostPage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, transition: 'slide-left' },
   },
   {
     path: '/posts/:id/edit',
     name: 'EditPost',
     component: EditPostPage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, transition: 'slide-left' },
   },
   {
     path: '/posts/:id',
     name: 'PostDetail',
     component: PostDetailPage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, transition: 'slide-left' },
   },
   {
     path: '/recommendations',
@@ -87,7 +87,7 @@ const routes: RouteRecordRaw[] = [
     path: '/chats/:id',
     name: 'ChatWindow',
     component: ChatWindowPage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, transition: 'slide-left' },
   },
   {
     path: '/notifications',
@@ -99,7 +99,7 @@ const routes: RouteRecordRaw[] = [
     path: '/profile/edit',
     name: 'EditProfile',
     component: EditProfilePage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, transition: 'slide-left' },
   },
   {
     path: '/profile',
@@ -111,7 +111,7 @@ const routes: RouteRecordRaw[] = [
     path: '/users/:id',
     name: 'UserProfile',
     component: UserProfilePage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, transition: 'slide-left' },
   },
 
   // ===== Default Redirect =====

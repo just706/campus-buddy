@@ -3,14 +3,23 @@
 Analyzes user profiles and preferences to compute match scores and
 generate human-readable recommendation reasons using LLM.
 
+When the LLM API key is not configured (placeholder value), falls back
+to a rule-based engine that computes scores from tag overlap, school
+matching, and profile completeness.
+
 Exposes a single public function:
     recommend(current_user, candidates) → list[RecommendationItem]
 """
 
+import logging
+
 from pydantic import BaseModel, Field
 
 from app.ai.agent import create_agent
+from app.core.config import settings
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 # ===== Structured Output Schema =====
 
@@ -97,6 +106,146 @@ def _build_candidates_text(
     )
 
 
+# ===== Rule-Based Fallback Engine =====
+
+# Placeholder API key patterns that indicate the LLM is not configured
+_PLACEHOLDER_KEYS = {
+    "",
+    "sk-your-api-key-here",
+    "your-api-key-here",
+    "sk-your-openai-api-key",
+    "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "sk-placeholder",
+}
+
+
+def _is_llm_configured() -> bool:
+    """Check whether a real LLM API key has been configured.
+
+    Returns:
+        True if the API key looks like a real key (non-empty, non-placeholder).
+    """
+    key = settings.PDAI_API_KEY.strip()
+    return key not in _PLACEHOLDER_KEYS and len(key) >= 20
+
+
+def _rule_based_match(
+    current_user: User, candidates: list[User]
+) -> list[MatchResult]:
+    """Compute match scores using a deterministic rule-based engine.
+
+    Dimensions (same as the LLM prompt):
+    1. Tag overlap — primary signal, each shared tag adds points
+    2. School matching — same university > same city > other
+    3. Profile completeness — bio filled, major filled, grade filled
+    4. Same major/grade bonus for academic affinity
+
+    The score formula is weighted and clamped to [0, 100].
+    """
+    my_tags = set(tag.strip().lower() for tag in (current_user.tags or []))
+    my_uni = (current_user.university or "").strip()
+    my_city = _extract_city(my_uni)
+
+    results: list[MatchResult] = []
+    for c in candidates:
+        score = 30.0  # Base score for being an active user
+        reasons: list[str] = []
+
+        # --- Tag overlap (max +40) ---
+        their_tags = set(tag.strip().lower() for tag in (c.tags or []))
+        common = my_tags & their_tags
+        if common and my_tags:
+            overlap_ratio = len(common) / max(len(my_tags), 1)
+            tag_score = min(40.0, round(overlap_ratio * 40.0, 1))
+            score += tag_score
+            tag_names = "、".join(sorted(common)[:4])
+            reasons.append(f"你们有 {len(common)} 个共同兴趣标签（{tag_names}）")
+        elif their_tags:
+            reasons.append("你们的兴趣标签各不相同，但可以探索新领域")
+
+        # --- School matching (max +25) ---
+        their_uni = (c.university or "").strip()
+        if my_uni and their_uni and my_uni == their_uni:
+            score += 25
+            reasons.append(f"同校 ({my_uni})")
+        else:
+            their_city = _extract_city(their_uni)
+            if my_city and their_city and my_city == their_city:
+                score += 15
+                reasons.append(f"同城 ({my_city})")
+
+        # --- Profile completeness (max +10) ---
+        completeness = 0.0
+        if c.bio and len(c.bio.strip()) >= 10:
+            completeness += 4.0
+        if c.major:
+            completeness += 3.0
+        if c.grade:
+            completeness += 3.0
+        score += completeness
+        if completeness >= 8:
+            reasons.append("资料完善度高，参与积极")
+
+        # --- Same major/grade bonus (max +5) ---
+        bonus = 0.0
+        if current_user.major and c.major and current_user.major == c.major:
+            bonus += 2.5
+        if current_user.grade and c.grade and current_user.grade == c.grade:
+            bonus += 2.5
+        score += bonus
+        if bonus >= 4:
+            reasons.append("同专业同年级，有共同话题")
+        elif bonus >= 2:
+            reasons.append("专业或年级相近")
+
+        # Clamp and round
+        score = max(0.0, min(100.0, round(score, 1)))
+
+        # Generate reason text
+        if not reasons:
+            nickname = c.nickname or c.username
+            reasons.append(f"{nickname}是潜在的校园搭子人选")
+        reason = "；".join(reasons[:3])
+
+        results.append(
+            MatchResult(
+                candidate_user_id=c.id,
+                match_score=score,
+                reason=reason,
+            )
+        )
+
+    # Sort by score descending
+    results.sort(key=lambda r: r.match_score, reverse=True)
+    return results
+
+
+def _extract_city(university: str) -> str:
+    """Extract a city name from a university string.
+
+    Heuristic: Chinese universities typically contain a city name.
+    For others, returns the university name as-is.
+
+    Args:
+        university: University name string.
+
+    Returns:
+        Extracted city name or empty string.
+    """
+    city_keywords = [
+        "北京", "上海", "广州", "深圳", "杭州", "南京", "武汉", "成都",
+        "西安", "天津", "重庆", "苏州", "长沙", "郑州", "青岛", "大连",
+        "厦门", "福州", "合肥", "沈阳", "哈尔滨", "长春", "济南", "昆明",
+        "贵阳", "南宁", "兰州", "乌鲁木齐", "南昌", "太原", "呼和浩特",
+        "石家庄", "宁波", "温州", "珠海", "东莞",
+    ]
+    for city in city_keywords:
+        if city in university:
+            return city
+    # Fallback: use the first 2-3 characters as a rough city indicator
+    return university[:2] if len(university) >= 2 else university
+
+
 async def recommend(
     current_user: User,
     candidates: list[User],
@@ -119,12 +268,28 @@ async def recommend(
     if not candidates:
         return []
 
-    agent = create_agent(
-        output_type=MatchResultList,
-        system_prompt=MATCHING_SYSTEM_PROMPT,
-    )
-    prompt = _build_candidates_text(current_user, candidates)
-    result = await agent.run(prompt)
-    # Sort by score descending
-    matches = sorted(result.data.matches, key=lambda m: m.match_score, reverse=True)
-    return matches
+    # Fall back to rule-based engine when LLM is not configured
+    if not _is_llm_configured():
+        logger.info(
+            "LLM API key not configured — using rule-based matching engine"
+        )
+        return _rule_based_match(current_user, candidates)
+
+    try:
+        agent = create_agent(
+            output_type=MatchResultList,
+            system_prompt=MATCHING_SYSTEM_PROMPT,
+        )
+        prompt = _build_candidates_text(current_user, candidates)
+        result = await agent.run(prompt)
+        # Sort by score descending
+        matches = sorted(
+            result.data.matches, key=lambda m: m.match_score, reverse=True
+        )
+        return matches
+    except Exception as exc:
+        logger.warning(
+            "LLM matching failed (%s) — falling back to rule-based engine",
+            exc,
+        )
+        return _rule_based_match(current_user, candidates)

@@ -57,7 +57,7 @@
     <!-- Tags -->
     <div class="form-section">
       <label class="form-label">标签</label>
-      <TagsEditor v-model="form.tags" :max="10" />
+      <TagsEditor v-model="form.tags" :max="10" :suggestions="SUGGESTED_TAGS" />
     </div>
 
     <!-- Location -->
@@ -112,7 +112,7 @@
 
 <script setup lang="ts">
 import { reactive, computed } from 'vue'
-import { CATEGORIES } from '@/utils/constants'
+import { CATEGORIES, SUGGESTED_TAGS } from '@/utils/constants'
 import TagsEditor from '@/components/common/TagsEditor.vue'
 import type { PostCreate } from '@/types'
 

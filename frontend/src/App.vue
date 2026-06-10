@@ -1,8 +1,9 @@
-<!-- Root App component — router view + conditional TabBar -->
+<!-- Root App component — router view + conditional TabBar + NetworkBanner -->
 <template>
   <div class="app-container">
+    <NetworkBanner />
     <router-view v-slot="{ Component, route }">
-      <transition name="page-fade" mode="out-in">
+      <transition :name="route.meta.transition || 'page-fade'" mode="out-in">
         <component :is="Component" :key="route.path" />
       </transition>
     </router-view>
@@ -14,6 +15,7 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppTabBar from '@/components/common/AppTabBar.vue'
+import NetworkBanner from '@/components/common/NetworkBanner.vue'
 
 const route = useRoute()
 
@@ -35,7 +37,9 @@ const showTabBar = computed(() => {
 </style>
 
 <style>
-/* Page transition animations */
+/* ===== Page Transition Animations ===== */
+
+/* Fade — default for most pages */
 .page-fade-enter-active,
 .page-fade-leave-active {
   transition: opacity 0.2s ease;
@@ -44,4 +48,21 @@ const showTabBar = computed(() => {
 .page-fade-leave-to {
   opacity: 0;
 }
+
+/* Slide left — for navigating deeper (e.g., post list → detail) */
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: all 0.25s ease;
+}
+.slide-left-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+/* Slide right — for navigating back (e.g., detail → list) */
+/* Currently same timing, reverse direction */
 </style>

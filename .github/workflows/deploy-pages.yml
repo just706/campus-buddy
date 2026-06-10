@@ -45,6 +45,9 @@ jobs:
           VITE_API_BASE_URL: https://campus-buddy-api-rjgs.onrender.com/api/v1
           VITE_BASE: /campus-buddy/
 
+      - name: 复制 index.html → 404.html（SPA 路由支持）
+        run: cp frontend/dist/index.html frontend/dist/404.html
+
       - name: 上传到 GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:

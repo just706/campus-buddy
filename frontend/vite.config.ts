@@ -5,6 +5,10 @@ import { resolve } from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // GitHub Pages 会部署到 /<repo-name>/ 子路径下
+  // 如果你的仓库名就是 username.github.io，把下面改成 '/'
+  base: process.env.VITE_BASE ?? '/campus-buddy/',
+
   plugins: [
     vue(),
     VitePWA({

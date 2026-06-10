@@ -73,7 +73,7 @@ const isLoading = computed(() => chatsStore.isLoading)
 /** Initial load + refresh on page activation. */
 async function loadChats() {
   reset()
-  await chatsStore.fetchChatList(1, pageSize)
+  await chatsStore.fetchChatList(1, pageSize.value)
 }
 
 // Fetch on mount
@@ -81,7 +81,7 @@ loadChats()
 
 // Re-fetch when tab is activated (come back from chat window)
 onActivated(() => {
-  chatsStore.fetchChatList(1, pageSize)
+  chatsStore.fetchChatList(1, pageSize.value)
 })
 
 /** Infinite scroll — load more when near bottom. */
@@ -91,7 +91,7 @@ function handleScroll() {
   const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100
   if (nearBottom) {
     nextPage()
-    chatsStore.fetchChatList(page.value, pageSize)
+    chatsStore.fetchChatList(page.value, pageSize.value)
   }
 }
 

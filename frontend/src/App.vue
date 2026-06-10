@@ -3,7 +3,7 @@
   <div class="app-container">
     <NetworkBanner />
     <router-view v-slot="{ Component, route }">
-      <transition :name="route.meta.transition || 'page-fade'" mode="out-in">
+      <transition :name="(route.meta.transition as string | undefined) || 'page-fade'" mode="out-in">
         <component :is="Component" :key="route.path" />
       </transition>
     </router-view>

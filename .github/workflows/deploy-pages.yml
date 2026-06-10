@@ -1,0 +1,54 @@
+name: Deploy Frontend to GitHub Pages
+
+on:
+  # 当推送到 master 分支时自动部署
+  push:
+    branches: [master, main]
+    paths:
+      - 'frontend/**'
+  # 允许手动触发
+  workflow_dispatch:
+
+# GitHub Pages 需要的权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 确保只有一个部署任务在运行
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 安装依赖
+        run: cd frontend && npm ci
+
+      - name: 构建前端
+        run: cd frontend && npm run build
+        env:
+          # === 重要：部署前改成你的 Render 后端地址 ===
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'https://你的Render服务名.onrender.com/api/v1' }}
+          VITE_BASE: ${{ vars.VITE_BASE || '/campus-buddy/' }}
+
+      - name: 上传到 GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+      - name: 部署到 GitHub Pages
+        uses: actions/deploy-pages@v4

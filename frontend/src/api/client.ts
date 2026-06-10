@@ -27,9 +27,14 @@ export function setupAuthInterceptors(options: {
   _onAuthFailure = options.onAuthFailure
 }
 
+// ===== API Base URL =====
+// In development, Vite's dev server proxies /api/v1 → localhost:8000
+// In production, set VITE_API_BASE_URL to your Render backend URL
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
+
 // ===== Axios Instance =====
 const http = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE,
   timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
 })
@@ -107,7 +112,7 @@ http.interceptors.response.use(
 
       try {
         // Call refresh endpoint directly (bypass interceptors to avoid loops)
-        const res = await axios.post('/api/v1/auth/refresh', {
+        const res = await axios.post(`${API_BASE}/auth/refresh`, {
           refresh_token: refreshToken,
         })
         const body = res.data

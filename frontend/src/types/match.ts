@@ -14,6 +14,9 @@ export interface MatchedUserBrief {
   nickname: string | null
   avatar: string | null
   university: string
+  college: string | null
+  major: string | null
+  grade: string | null
   gender: string | null
   tags: string[] | null
 }

@@ -30,6 +30,17 @@ export interface PostFilter {
   page_size: number
 }
 
+export interface PostUserBrief {
+  id: number
+  username: string
+  nickname: string | null
+  avatar: string | null
+  university: string
+  college: string | null
+  major: string | null
+  grade: string | null
+}
+
 export interface PostResponse {
   id: number
   user_id: number
@@ -45,6 +56,7 @@ export interface PostResponse {
   expires_at: string | null
   created_at: string
   updated_at: string
+  user: PostUserBrief | null
 }
 
 export interface PostListResponse {

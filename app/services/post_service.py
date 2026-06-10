@@ -10,6 +10,7 @@ from datetime import UTC, datetime, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.core.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.models.post import Post
@@ -105,7 +106,9 @@ async def get_post(db: AsyncSession, post_id: int) -> Post:
     Raises:
         NotFoundException: If the post does not exist.
     """
-    post = await db.get(Post, post_id)
+    query = select(Post).options(joinedload(Post.user)).where(Post.id == post_id)
+    result = await db.execute(query)
+    post = result.scalar_one_or_none()
     if post is None:
         raise NotFoundException("Post not found")
 
@@ -154,7 +157,7 @@ async def get_posts(
             (Post.title.ilike(keyword)) | (Post.description.ilike(keyword))
         )
 
-    base = select(Post).where(*conditions)
+    base = select(Post).options(joinedload(Post.user)).where(*conditions)
 
     # Total count
     count_query = select(func.count()).select_from(base.subquery())

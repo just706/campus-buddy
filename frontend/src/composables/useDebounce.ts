@@ -20,7 +20,7 @@ export function useDebounce<T>(source: Ref<T>, delay = 300): Ref<T> {
 }
 
 /** Simple debounce for a callback function. */
-export function debounce<T extends (...args: unknown[]) => unknown>(
+export function debounce<T extends (...args: any[]) => unknown>(
   fn: T,
   delay = 300,
 ): (...args: Parameters<T>) => void {

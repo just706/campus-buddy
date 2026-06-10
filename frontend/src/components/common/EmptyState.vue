@@ -16,11 +16,11 @@ import { Document } from '@element-plus/icons-vue'
 
 withDefaults(defineProps<{
   text?: string
-  icon?: object
+  icon?: any
   actionText?: string
 }>(), {
   text: '暂无数据',
-  icon: Document,
+  icon: () => Document,
   actionText: '',
 })
 

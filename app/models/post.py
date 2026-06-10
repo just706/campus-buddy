@@ -6,11 +6,15 @@ and automatic expiry.
 """
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class Post(Base):
@@ -42,3 +46,6 @@ class Post(Base):
     expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+
+    # Relationship: eagerly load author info for post display
+    user: Mapped["User"] = relationship("User")

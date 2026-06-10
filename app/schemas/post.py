@@ -47,6 +47,21 @@ class PostFilter(BaseModel):
     page_size: int = Field(default=20, ge=1, le=100)
 
 
+class PostUserBrief(BaseModel):
+    """Minimal author info embedded in post responses."""
+
+    id: int
+    username: str
+    nickname: str | None = None
+    avatar: str | None = None
+    university: str
+    college: str | None = None
+    major: str | None = None
+    grade: str | None = None
+
+    model_config = {"from_attributes": True}
+
+
 class PostResponse(BaseModel):
     """Post data returned by the API."""
 
@@ -64,6 +79,7 @@ class PostResponse(BaseModel):
     expires_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
+    user: PostUserBrief | None = None
 
     model_config = {"from_attributes": True}
 

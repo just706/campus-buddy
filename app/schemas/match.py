@@ -51,6 +51,9 @@ class MatchedUserBrief(BaseModel):
     nickname: str | None = None
     avatar: str | None = None
     university: str
+    college: str | None = None
+    major: str | None = None
+    grade: str | None = None
     gender: str | None = None
     tags: list | None = None
 

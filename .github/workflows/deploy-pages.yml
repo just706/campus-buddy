@@ -6,6 +6,7 @@ on:
     branches: [master, main]
     paths:
       - 'frontend/**'
+      - '.github/workflows/deploy-pages.yml'
   # 允许手动触发
   workflow_dispatch:
 
@@ -41,9 +42,8 @@ jobs:
       - name: 构建前端
         run: cd frontend && npm run build
         env:
-          # === 重要：部署前改成你的 Render 后端地址 ===
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'https://你的Render服务名.onrender.com/api/v1' }}
-          VITE_BASE: ${{ vars.VITE_BASE || '/campus-buddy/' }}
+          VITE_API_BASE_URL: https://campus-buddy-api-rjgs.onrender.com/api/v1
+          VITE_BASE: /campus-buddy/
 
       - name: 上传到 GitHub Pages
         uses: actions/upload-pages-artifact@v3

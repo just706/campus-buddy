@@ -1,0 +1,1 @@
+<template><div class="page-placeholder"><h2>聊天窗口</h2><p>阶段三实现</p></div></template>

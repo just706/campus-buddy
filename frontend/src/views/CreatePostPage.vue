@@ -1,0 +1,1 @@
+<template><div class="page-placeholder"><h2>发布邀约</h2><p>阶段二实现</p></div></template>

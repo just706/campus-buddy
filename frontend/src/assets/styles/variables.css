@@ -1,0 +1,60 @@
+/* ===== Campus BUDDY Design Tokens ===== */
+/* Per PRD §7 — Visual Design Style */
+
+:root {
+  /* ===== Brand Colors ===== */
+  --color-primary: #409EFF;
+  --color-primary-light: #66b1ff;
+  --color-primary-dark: #3a8ee6;
+  --color-secondary: #67C23A;
+  --color-secondary-light: #85ce61;
+  --color-danger: #F56C6C;
+  --color-danger-light: #f89898;
+  --color-warning: #E6A23C;
+  --color-info: #909399;
+
+  /* ===== Backgrounds ===== */
+  --bg-page: #F5F7FA;
+  --bg-white: #ffffff;
+  --bg-card: #ffffff;
+
+  /* ===== Text ===== */
+  --text-primary: #303133;
+  --text-regular: #606266;
+  --text-secondary: #909399;
+  --text-placeholder: #c0c4cc;
+  --text-inverse: #ffffff;
+
+  /* ===== Borders ===== */
+  --border-color: #e4e7ed;
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+
+  /* ===== Shadows ===== */
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* ===== Category Colors ===== */
+  --color-cat-study: #409EFF;
+  --color-cat-sports: #F56C6C;
+  --color-cat-dining: #E6A23C;
+  --color-cat-travel: #67C23A;
+  --color-cat-other: #909399;
+
+  /* ===== Typography ===== */
+  --font-family-base: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size-h1: 24px;
+  --font-size-h2: 18px;
+  --font-size-body: 15px;
+  --font-size-caption: 13px;
+  --font-weight-bold: 700;
+  --font-weight-semibold: 600;
+  --font-weight-regular: 400;
+
+  /* ===== Spacing ===== */
+  --tab-bar-height: 56px;
+  --header-height: 48px;
+}

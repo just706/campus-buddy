@@ -5,10 +5,12 @@ exception handlers, and mounts API routers.
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.v1.router import api_v1_router
@@ -95,6 +97,15 @@ app.add_exception_handler(Exception, generic_exception_handler)
 
 # ===== Routers =====
 app.include_router(api_v1_router)
+
+
+@app.get("/test", response_class=HTMLResponse, tags=["health"])
+async def test_page():
+    """Serve the API test page."""
+    page_path = Path(__file__).parent.parent / "test_page.html"
+    if not page_path.exists():
+        return HTMLResponse(content="<h1>test_page.html not found</h1>", status_code=404)
+    return HTMLResponse(content=page_path.read_text(encoding="utf-8"))
 
 
 @app.get("/", tags=["health"])

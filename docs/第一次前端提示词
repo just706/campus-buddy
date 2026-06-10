@@ -1,0 +1,27 @@
+你是一名资深产品经理（PM）和系统架构师。
+
+请不要编写代码。
+
+请先为我生成一份完整、专业、可直接进入开发阶段的 PRD（Product Requirements Document）。
+
+项目名称：
+
+Campus BUDDDY（校园搭子匹配系统）
+
+# 技术约束
+
+前端：
+
+Vue3
+Vite
+Element Plus
+
+要求：
+
+* 使用标准PRD格式
+* 使用Markdown输出
+* 尽可能详细
+* 不输出代码
+* 不设计数据库表
+* 不设计API
+* 只做产品需求分析

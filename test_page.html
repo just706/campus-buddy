@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CampusBuddy 后端测试页面</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --success: #22c55e;
+    --error: #ef4444;
+    --warning: #f59e0b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+  h1 { text-align: center; margin: 24px 0; font-size: 28px; }
+  h1 span { color: var(--primary); }
+  h2 { font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  h2 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+
+  /* Status bar */
+  .status-bar {
+    display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 18px; font-size: 14px;
+  }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--error); flex-shrink: 0; }
+  .status-dot.online { background: var(--success); }
+  .status-bar .token-info { margin-left: auto; font-size: 12px; color: var(--muted); }
+
+  /* Card */
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .card.auth-card { border-left: 3px solid var(--primary); }
+  .card.profile-card { border-left: 3px solid var(--success); }
+
+  /* Form */
+  .form-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; flex: 1 1 180px; }
+  .form-group label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input, .form-group select {
+    padding: 8px 12px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); font-size: 14px; outline: none;
+  }
+  .form-group input:focus { border-color: var(--primary); }
+  button {
+    padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px;
+    font-weight: 600; cursor: pointer; transition: all .2s;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { border-color: var(--primary); }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+  .btn-danger { background: var(--error); color: #fff; }
+  .btn-success { background: var(--success); color: #fff; }
+
+  /* Result box */
+  .result {
+    margin-top: 12px; padding: 14px; border-radius: 8px; font-size: 13px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    white-space: pre-wrap; max-height: 360px; overflow-y: auto;
+    background: #0f172a; border: 1px solid var(--border); line-height: 1.5;
+  }
+  .result.error { border-color: var(--error); }
+  .result.success { border-color: var(--success); }
+
+  /* Token display */
+  .token-block {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px; margin: 6px 0; font-size: 12px;
+  }
+  .token-block .label { color: var(--muted); margin-bottom: 4px; }
+  .token-block .value { word-break: break-all; font-family: monospace; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab {
+    padding: 8px 18px; border-radius: 6px; cursor: pointer; font-size: 13px;
+    background: transparent; border: 1px solid var(--border); color: var(--muted);
+  }
+  .tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+  /* User info */
+  .user-info dl { display: grid; grid-template-columns: 120px 1fr; gap: 8px 12px; font-size: 13px; }
+  .user-info dt { color: var(--muted); }
+  .flex-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .gap { gap: 8px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-success { background: #166534; color: #4ade80; }
+  .badge-warning { background: #713f12; color: #fbbf24; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>🏫 <span>CampusBuddy</span> 后端测试页面</h1>
+
+  <!-- Status -->
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">检测中...</span>
+    <span class="token-info" id="tokenInfo"></span>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="auth">🔐 登录 / 注册</div>
+    <div class="tab" data-tab="profile">👤 个人信息</div>
+    <div class="tab" data-tab="posts">📝 帖子</div>
+    <div class="tab" data-tab="matches">🤝 匹配</div>
+    <div class="tab" data-tab="db">🗄️ 数据库</div>
+    <div class="tab" data-tab="api">📋 通用请求</div>
+  </div>
+
+  <!-- Auth Tab -->
+  <div id="tab-auth" class="tab-content">
+    <div class="card auth-card">
+      <h2><span class="dot"></span> 注册新账号</h2>
+      <div class="form-row">
+        <div class="form-group"><label>用户名 *</label><input id="reg-username" placeholder="mybuddy"></div>
+        <div class="form-group"><label>邮箱 *</label><input id="reg-email" type="email" placeholder="me@example.com"></div>
+        <div class="form-group"><label>密码 *</label><input id="reg-password" type="password" placeholder="至少6位"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>学校 *</label><input id="reg-university" placeholder="清华大学"></div>
+        <div class="form-group"><label>学院</label><input id="reg-college" placeholder="计算机学院"></div>
+        <div class="form-group"><label>专业</label><input id="reg-major" placeholder="软件工程"></div>
+        <div class="form-group"><label>年级</label><input id="reg-grade" placeholder="大三"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>昵称</label><input id="reg-nickname" placeholder="小明"></div>
+        <div class="form-group"><label>性别</label><input id="reg-gender" placeholder="男/女"></div>
+        <div class="form-group"><label>手机号</label><input id="reg-phone" placeholder="13800138000"></div>
+      </div>
+      <button class="btn-primary" onclick="doRegister()">📝 注册</button>
+      <div id="reg-result" class="result" style="display:none"></div>
+    </div>
+
+    <div class="card auth-card">
+      <h2><span class="dot"></span> 登录</h2>
+      <div class="form-row">
+        <div class="form-group"><label>邮箱或用户名</label><input id="login-account" placeholder="mybuddy / me@example.com"></div>
+        <div class="form-group"><label>密码</label><input id="login-password" type="password" placeholder="输入密码"></div>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">🔓 登录</button>
+      <div id="login-result" class="result" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Profile Tab -->
+  <div id="tab-profile" class="tab-content" style="display:none">
+    <div class="card profile-card">
+      <div class="flex-row">
+        <h2><span class="dot"></span> 当前用户信息</h2>
+        <button class="btn-outline btn-sm" onclick="getProfile()">🔄 刷新</button>
+        <button class="btn-outline btn-sm" onclick="updateProfile()">💾 更新</button>
+      </div>
+      <div class="user-info" id="profile-display">
+        <p style="color:var(--muted)">请先登录后再查看</p>
+      </div>
+      <div id="profile-result" class="result" style="display:none"></div>
+    </div>
+
+    <div class="card">
+      <h2>更新资料</h2>
+      <div class="form-row">
+        <div class="form-group"><label>昵称</label><input id="upd-nickname"></div>
+        <div class="form-group"><label>性别</label><input id="upd-gender"></div>
+        <div class="form-group"><label>简介</label><input id="upd-bio"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>标签 (逗号分隔)</label><input id="upd-tags" placeholder="跑步,学习,摄影"></div>
+        <div class="form-group"><label>手机号</label><input id="upd-phone"></div>
+      </div>
+      <button class="btn-primary btn-sm" onclick="doUpdateProfile()">确认更新</button>
+      <div id="update-result" class="result" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Posts Tab -->
+  <div id="tab-posts" class="tab-content" style="display:none">
+    <div class="card">
+      <h2>创建帖子</h2>
+      <div class="form-row">
+        <div class="form-group" style="flex:2"><label>标题</label><input id="post-title" placeholder="找学习搭子"></div>
+        <div class="form-group"><label>类型</label>
+          <select id="post-type">
+            <option value="study">学习</option><option value="sports">运动</option>
+            <option value="dining">吃饭</option><option value="travel">出行</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+        <div class="form-group"><label>人数上限</label><input id="post-max" type="number" value="2" min="1" max="20"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2"><label>内容</label><input id="post-content" placeholder="描述一下你想找什么样的搭子..."></div>
+        <div class="form-group"><label>标签 (逗号分隔)</label><input id="post-tags" placeholder="图书馆,高数"></div>
+      </div>
+      <button class="btn-primary btn-sm" onclick="createPost()">📝 发布</button>
+    </div>
+    <div class="card">
+      <div class="flex-row">
+        <h2>帖子列表</h2>
+        <button class="btn-outline btn-sm" onclick="getPosts()">🔄 刷新</button>
+      </div>
+      <div id="posts-result" class="result" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- Matches Tab -->
+  <div id="tab-matches" class="tab-content" style="display:none">
+    <div class="card">
+      <h2>匹配功能</h2>
+      <div class="flex-row gap mt-8">
+        <button class="btn-primary btn-sm" onclick="getRecommendations()">🤖 AI 推荐</button>
+        <button class="btn-outline btn-sm" onclick="getMatches()">📋 我的匹配</button>
+        <button class="btn-outline btn-sm" onclick="getSentRequests()">📤 发出的请求</button>
+        <button class="btn-outline btn-sm" onclick="getReceivedRequests()">📥 收到的请求</button>
+      </div>
+      <div id="matches-result" class="result" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- DB Tab -->
+  <div id="tab-db" class="tab-content" style="display:none">
+    <div class="card">
+      <div class="flex-row">
+        <h2><span class="dot"></span> 数据库表</h2>
+        <button class="btn-outline btn-sm" onclick="loadTables()">🔄 刷新</button>
+      </div>
+      <div id="tables-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <span style="color:var(--muted);font-size:13px;">请先登录后加载...</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="flex-row">
+        <h2 id="db-table-title">📄 选择一张表查看</h2>
+        <div class="flex-row gap" style="margin-left:auto;">
+          <span style="font-size:12px;color:var(--muted);line-height:32px;" id="db-page-info"></span>
+          <button class="btn-outline btn-sm" onclick="prevPage()">◀ 上一页</button>
+          <button class="btn-outline btn-sm" onclick="nextPage()">下一页 ▶</button>
+        </div>
+      </div>
+      <div id="db-result" style="overflow-x:auto;font-size:12px;">
+        <p style="color:var(--muted)">选择上方表名查看数据</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generic API Tab -->
+  <div id="tab-api" class="tab-content" style="display:none">
+    <div class="card">
+      <h2>通用 API 请求</h2>
+      <div class="form-row">
+        <div class="form-group" style="flex:0 0 100px"><label>方法</label>
+          <select id="api-method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select>
+        </div>
+        <div class="form-group" style="flex:3"><label>路径</label><input id="api-path" placeholder="/api/v1/..." value="/api/v1/"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:2"><label>Body (JSON)</label><input id="api-body" placeholder='{"key": "value"}'></div>
+        <div class="form-group"><label>需要认证</label>
+          <select id="api-auth"><option value="yes" selected>是</option><option value="no">否</option></select>
+        </div>
+      </div>
+      <button class="btn-primary btn-sm" onclick="sendApi()">🚀 发送</button>
+      <div id="api-result" class="result" style="display:none"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ========== State ==========
+const BASE = 'http://127.0.0.1:8000';
+let accessToken = '';
+let refreshToken = '';
+let currentUser = null;
+
+// ========== Init ==========
+checkHealth();
+loadTokens();
+
+function loadTokens() {
+  accessToken = localStorage.getItem('cb_access') || '';
+  refreshToken = localStorage.getItem('cb_refresh') || '';
+  if (accessToken) {
+    document.getElementById('tokenInfo').textContent = '已登录 | Token: ' + accessToken.substring(0,20) + '...';
+    getProfile(true); // silent load
+  }
+}
+
+function saveTokens() {
+  localStorage.setItem('cb_access', accessToken);
+  localStorage.setItem('cb_refresh', refreshToken);
+  document.getElementById('tokenInfo').textContent = accessToken
+    ? '已登录 | Token: ' + accessToken.substring(0,20) + '...'
+    : '';
+}
+
+function clearTokens() {
+  accessToken = '';
+  refreshToken = '';
+  currentUser = null;
+  localStorage.removeItem('cb_access');
+  localStorage.removeItem('cb_refresh');
+  document.getElementById('tokenInfo').textContent = '未登录';
+  document.getElementById('profile-display').innerHTML = '<p style="color:var(--muted)">请先登录后再查看</p>';
+}
+
+// ========== Health ==========
+async function checkHealth() {
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  try {
+    const r = await fetch(BASE + '/');
+    const d = await r.json();
+    dot.className = 'status-dot online';
+    text.textContent = `服务在线 — ${d.app} v${d.version} (${d.status})`;
+  } catch(e) {
+    dot.className = 'status-dot';
+    text.textContent = '服务离线 — 请先启动 python -m uvicorn app.main:app --reload';
+  }
+}
+
+// ========== HTTP helpers ==========
+function showResult(id, ok, data) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  el.className = 'result ' + (ok ? 'success' : 'error');
+  el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+}
+
+async function api(method, path, body, needAuth = true) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (needAuth && accessToken) {
+    headers['Authorization'] = 'Bearer ' + accessToken;
+  }
+  const opts = { method, headers };
+  if (body && method !== 'GET') {
+    opts.body = JSON.stringify(body);
+  }
+  const r = await fetch(BASE + path, opts);
+  let data;
+  try { data = await r.json(); } catch { data = await r.text(); }
+  return { ok: r.ok, status: r.status, data };
+}
+
+// ========== Auth ==========
+async function doRegister() {
+  const body = {
+    username: document.getElementById('reg-username').value,
+    email: document.getElementById('reg-email').value,
+    password: document.getElementById('reg-password').value,
+    university: document.getElementById('reg-university').value,
+    college: document.getElementById('reg-college').value || undefined,
+    major: document.getElementById('reg-major').value || undefined,
+    grade: document.getElementById('reg-grade').value || undefined,
+    nickname: document.getElementById('reg-nickname').value || undefined,
+    gender: document.getElementById('reg-gender').value || undefined,
+    phone: document.getElementById('reg-phone').value || undefined,
+  };
+  const { ok, data } = await api('POST', '/api/v1/auth/register', body, false);
+  showResult('reg-result', ok, data);
+  if (ok) {
+    // Auto-fill login form
+    document.getElementById('login-account').value = document.getElementById('reg-username').value;
+    document.getElementById('login-password').value = document.getElementById('reg-password').value;
+  }
+}
+
+async function doLogin() {
+  const body = {
+    login: document.getElementById('login-account').value,
+    password: document.getElementById('login-password').value,
+  };
+  const { ok, data } = await api('POST', '/api/v1/auth/login', body, false);
+  showResult('login-result', ok, data);
+  if (ok && data.data) {
+    accessToken = data.data.access_token;
+    refreshToken = data.data.refresh_token;
+    saveTokens();
+    getProfile(true);
+    // Switch to profile tab
+    document.querySelector('.tab[data-tab="profile"]').click();
+  }
+}
+
+// ========== Profile ==========
+async function getProfile(silent = false) {
+  const { ok, data } = await api('GET', '/api/v1/users/me');
+  if (ok && data.data) {
+    currentUser = data.data;
+    const u = currentUser;
+    const html = `
+      <dl>
+        <dt>ID</dt><dd>${u.id} <span class="badge badge-success">${u.is_active ? 'active' : 'inactive'}</span> <span class="badge badge-${u.is_verified ? 'success' : 'warning'}">${u.is_verified ? 'verified' : 'unverified'}</span></dd>
+        <dt>用户名</dt><dd>${u.username}</dd>
+        <dt>邮箱</dt><dd>${u.email}</dd>
+        <dt>昵称</dt><dd>${u.nickname || '-'}</dd>
+        <dt>性别</dt><dd>${u.gender || '-'}</dd>
+        <dt>学校</dt><dd>${u.university}</dd>
+        <dt>学院</dt><dd>${u.college || '-'}</dd>
+        <dt>专业</dt><dd>${u.major || '-'}</dd>
+        <dt>年级</dt><dd>${u.grade || '-'}</dd>
+        <dt>手机</dt><dd>${u.phone || '-'}</dd>
+        <dt>简介</dt><dd>${u.bio || '-'}</dd>
+        <dt>标签</dt><dd>${u.tags ? u.tags.join(', ') : '-'}</dd>
+        <dt>注册时间</dt><dd>${new Date(u.created_at).toLocaleString()}</dd>
+      </dl>`;
+    document.getElementById('profile-display').innerHTML = html;
+
+    // Fill update form
+    document.getElementById('upd-nickname').value = u.nickname || '';
+    document.getElementById('upd-gender').value = u.gender || '';
+    document.getElementById('upd-bio').value = u.bio || '';
+    document.getElementById('upd-tags').value = u.tags ? u.tags.join(',') : '';
+    document.getElementById('upd-phone').value = u.phone || '';
+  }
+  if (!silent) showResult('profile-result', ok, data);
+}
+
+async function doUpdateProfile() {
+  const body = {};
+  const nickname = document.getElementById('upd-nickname').value;
+  const gender = document.getElementById('upd-gender').value;
+  const bio = document.getElementById('upd-bio').value;
+  const tagsRaw = document.getElementById('upd-tags').value;
+  const phone = document.getElementById('upd-phone').value;
+  if (nickname) body.nickname = nickname;
+  if (gender) body.gender = gender;
+  if (bio) body.bio = bio;
+  if (tagsRaw) body.tags = tagsRaw.split(',').map(s => s.trim()).filter(Boolean);
+  if (phone) body.phone = phone;
+
+  const { ok, data } = await api('PATCH', '/api/v1/users/me', body);
+  showResult('update-result', ok, data);
+  if (ok) getProfile(true);
+}
+
+// ========== Posts ==========
+async function createPost() {
+  const body = {
+    title: document.getElementById('post-title').value,
+    type: document.getElementById('post-type').value,
+    content: document.getElementById('post-content').value,
+    max_members: parseInt(document.getElementById('post-max').value) || 2,
+  };
+  const tags = document.getElementById('post-tags').value;
+  if (tags) body.tags = tags.split(',').map(s => s.trim()).filter(Boolean);
+
+  const { ok, data } = await api('POST', '/api/v1/posts', body);
+  showResult('posts-result', ok, data);
+}
+
+async function getPosts() {
+  const { ok, data } = await api('GET', '/api/v1/posts');
+  showResult('posts-result', ok, data);
+}
+
+// ========== Matches ==========
+async function getRecommendations() {
+  const { ok, data } = await api('GET', '/api/v1/matches/recommendations');
+  showResult('matches-result', ok, data);
+}
+async function getMatches() {
+  const { ok, data } = await api('GET', '/api/v1/matches');
+  showResult('matches-result', ok, data);
+}
+async function getSentRequests() {
+  const { ok, data } = await api('GET', '/api/v1/matches/requests/sent');
+  showResult('matches-result', ok, data);
+}
+async function getReceivedRequests() {
+  const { ok, data } = await api('GET', '/api/v1/matches/requests/received');
+  showResult('matches-result', ok, data);
+}
+
+// ========== DB Viewer ==========
+let currentTable = '';
+let currentPage = 1;
+let currentTotal = 0;
+let currentPageSize = 50;
+
+async function loadTables() {
+  const { ok, data } = await api('GET', '/api/v1/debug/tables');
+  if (!ok || !data.data) {
+    document.getElementById('tables-list').innerHTML = '<span style="color:var(--error);font-size:13px;">加载失败，请确认已登录</span>';
+    return;
+  }
+  const tables = data.data.tables;
+  let html = '';
+  tables.forEach(t => {
+    html += `<button class="btn-outline btn-sm table-btn" data-table="${t.name}"
+      style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 16px;"
+      onclick="selectTable('${t.name}')">
+      <strong>${t.name}</strong>
+      <small style="color:var(--muted)">${t.row_count} 行 · ${t.columns.length} 列</small>
+    </button>`;
+  });
+  document.getElementById('tables-list').innerHTML = html;
+  if (currentTable) selectTable(currentTable);
+}
+
+function selectTable(name) {
+  currentTable = name;
+  currentPage = 1;
+  document.querySelectorAll('.table-btn').forEach(b => b.style.borderColor = 'var(--border)');
+  const btn = document.querySelector(`.table-btn[data-table="${name}"]`);
+  if (btn) btn.style.borderColor = 'var(--primary)';
+  document.getElementById('db-table-title').textContent = `📄 ${name}`;
+  loadTableData();
+}
+
+async function loadTableData() {
+  if (!currentTable) return;
+  const { ok, data } = await api('GET', `/api/v1/debug/tables/${currentTable}?page=${currentPage}&page_size=${currentPageSize}`);
+  if (!ok || !data.data) {
+    document.getElementById('db-result').innerHTML = `<p style="color:var(--error)">加载失败</p>`;
+    return;
+  }
+  const d = data.data;
+  currentTotal = d.total;
+  const totalPages = Math.ceil(d.total / d.page_size);
+  document.getElementById('db-page-info').textContent = `第 ${d.page} 页 / 共 ${totalPages} 页 (${d.total} 行)`;
+
+  // Build table HTML
+  if (!d.rows.length) {
+    document.getElementById('db-result').innerHTML = '<p style="color:var(--muted)">表中暂无数据</p>';
+    return;
+  }
+  const cols = d.columns.map(c => c.name);
+  let html = '<table style="width:100%;border-collapse:collapse;white-space:nowrap;">';
+  html += '<thead><tr>';
+  cols.forEach(c => { html += `<th style="padding:6px 10px;border-bottom:2px solid var(--border);text-align:left;position:sticky;top:0;background:var(--card);">${c}</th>`; });
+  html += '</tr></thead><tbody>';
+  d.rows.forEach((row, i) => {
+    const bg = i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)';
+    html += `<tr style="background:${bg}">`;
+    cols.forEach(c => {
+      let val = row[c];
+      if (val === null) val = '<i style="color:var(--muted)">NULL</i>';
+      else if (typeof val === 'object') val = JSON.stringify(val);
+      else val = String(val).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      html += `<td style="padding:5px 10px;border-bottom:1px solid var(--border);max-width:300px;overflow:hidden;text-overflow:ellipsis;" title="${String(row[c]||'').replace(/"/g,'&quot;')}">${val}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('db-result').innerHTML = html;
+}
+
+function prevPage() {
+  if (currentPage > 1) { currentPage--; loadTableData(); }
+}
+function nextPage() {
+  if (currentPage * currentPageSize < currentTotal) { currentPage++; loadTableData(); }
+}
+async function sendApi() {
+  const method = document.getElementById('api-method').value;
+  const path = document.getElementById('api-path').value;
+  const needAuth = document.getElementById('api-auth').value === 'yes';
+  let body = null;
+  const bodyRaw = document.getElementById('api-body').value.trim();
+  if (bodyRaw) {
+    try { body = JSON.parse(bodyRaw); } catch { body = bodyRaw; }
+  }
+  const { ok, status, data } = await api(method, path, body, needAuth);
+  showResult('api-result', ok, { status, body: data });
+}
+
+// ========== Tabs ==========
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    document.getElementById('tab-' + tab.dataset.tab).style.display = 'block';
+    if (tab.dataset.tab === 'db') loadTables();
+  });
+});
+
+// ========== Logout ==========
+document.getElementById('tokenInfo').addEventListener('click', () => {
+  if (accessToken && confirm('确定要退出登录吗？')) {
+    clearTokens();
+  }
+});
+document.getElementById('tokenInfo').style.cursor = accessToken ? 'pointer' : 'default';
+</script>
+</body>
+</html>

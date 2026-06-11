@@ -225,8 +225,11 @@ const { isConnected: wsConnected, connect: wsConnect, disconnect: wsDisconnect, 
     urlFactory: () => {
       const token = authStore.accessToken
       if (!token) return null
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      return `${protocol}//${window.location.host}/api/v1/ws/chat/${chatId.value}?token=${token}`
+      // 用后端地址构造 WebSocket URL，适配 Render 部署
+      const apiBase = import.meta.env.VITE_API_BASE_URL ?? ''
+      const wsBase = apiBase.replace(/^http/, 'ws')
+      const host = wsBase || `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`
+      return `${host}/ws/chat/${chatId.value}?token=${token}`
     },
     onMessage: handleWsMessage,
     onOpen: () => {

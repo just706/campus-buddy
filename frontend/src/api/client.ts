@@ -35,7 +35,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '/api/v1'
 // ===== Axios Instance =====
 const http = axios.create({
   baseURL: API_BASE,
-  timeout: 15000,
+  timeout: 60000, // 60s — Render 免费版冷启动需要 30~60s
   headers: { 'Content-Type': 'application/json' },
 })
 
